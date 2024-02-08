@@ -1,0 +1,17 @@
+Package: lab2clean
+Title: Automation and Standardization of Cleaning Clinical Lab Data
+Version: 0.0.0.9000
+Authors@R: 
+    c(person("Ahmed", "Zayed", , "ahmed.zayed@kuleuven.be", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0001-7797-1655")),
+           person("Arne", "Janssens", , "arne.janssens@kuleuven.be", role = c("aut", "ctb")),
+           person("Pavlos", "Mamouris", , "pavlos.mamouris@kuleuven.be", role = c("ctb")))
+Description: Navigating the shift of clinical laboratory data from primary everyday clinical use to secondary research purposes presents a significant challenge. Given the substantial time and expertise required to preprocess and clean this data and the lack of all-in-one tools tailored for this need, we developed our algorithm "lab2clean" as an open-source R-package. "lab2clean" package is set to automate and standardize the intricate process of cleaning clinical laboratory results. With a keen focus on improving the data quality of laboratory result values, while assuming compliance with established standards like LOINC and UCUM for test identifiers and units, our goal is to equip researchers with a straightforward, plug-and-play tool, making it smoother for them to unlock the true potential of clinical laboratory data in clinical research and clinical machine learning (ML) model development.
+License: GPL (>= 3)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Imports: 
+    data.table,
+    stats,
+    utils

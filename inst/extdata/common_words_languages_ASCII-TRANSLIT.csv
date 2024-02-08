@@ -1,0 +1,20 @@
+Language,Positive,Negative,Not_detected,High,Low,Normal,Sample,Specimen
+English,Positive,Negative,Not detected,High,Low,Normal,Sample,Specimen
+Spanish,Positivo,Negativo,No detectado,Alto,Bajo,Normal,Muestra,Especimen
+Portuguese,Positivo,Negativo,Nao detectado,Alto,Baixo,Normal,Amostra,Especime
+French,Positif,Negatif,Non detecte,Eleve,Bas,Normal,Echantillon,Specimen
+German,Positiv,Negativ,Nicht erkannt,Hoch,Niedrig,Normal,Probe,Probe
+Italian,Positivo,Negativo,Non rilevato,Alto,Basso,Normale,Campione,Campione
+Dutch,Positief,Negatief,Niet gedetecteerd,Hoog,Laag,Normaal,Staal,Monster
+Polish,Dodatni,Ujemny,Nie wykryto,Wysoki,Niski,Normalny,Probka,Probka
+Swedish,Positiv,Negativ,Inte upptackt,Hog,Lag,Normal,Prov,Prov
+Danish,Positiv,Negativ,Ikke opdaget,Hoj,Lav,Normal,Prove,Prove
+Norwegian,Positiv,Negativ,Ikke oppdaget,Hoy,Lav,Normal,Prove,Prove
+Finnish,Positiivinen,Negatiivinen,Ei havaittu,Korkea,Matala,Normaali,Nayte,Nayte
+Czech,Pozitivni,Negativni,Nezjisteno,Vysoky,Nizky,Normalni,Vzorek,Vzorek
+Hungarian,Pozitiv,Negativ,Nem eszlelt,Magas,Alacsony,Normal,Mintavetel,Mintadarab
+Croatian,Pozitivan,Negativan,Nije otkriveno,Visok,Nizak,Normalan,Uzorak,Uzorak
+Slovak,Pozitivny,Negativny,Nezistene,Vysoky,Nizky,Normalny,Vzorka,Vzorka
+Slovenian,Pozitiven,Negativen,Ni zaznano,Visok,Nizek,Normalno,Vzorec,Vzorec
+Estonian,Positiivne,Negatiivne,Ei tuvastatud,Korge,Madal,Normaalne,Proov,Proov
+Lithuanian,Teigiamas,Neigiamas,Neaptiktas,Aukstas,Zemas,Normalus,Pavyzdys,Pavyzdys
