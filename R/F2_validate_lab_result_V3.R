@@ -36,8 +36,7 @@ utils::globalVariables(c("group", "validation_result", "time_diff", "time_interv
 #'
 #' @note
 #' This function is a component of a broader laboratory data cleaning pipeline and should be evaluated accordingly.
-#' The package's framework includes functions for cleaning result values, validating quantitative results,
-#' standardizing unit formats, performing unit conversion, and assisting in LOINC code mapping.
+#' The package's framework includes functions for cleaning result values and validating quantitative results.
 #'
 #' Concerning performance, the function's speed might be influenced by the size of `lab_data`. Consider:
 #'   * Limiting the number of records processed.
@@ -47,9 +46,6 @@ utils::globalVariables(c("group", "validation_result", "time_diff", "time_interv
 #'
 #' @seealso
 #' Function 1 for result value cleaning,
-#' Function 3 for lab unit format standardization,
-#' Function 4 for unit conversion,
-#' Function 5 for LOINC code mapping.
 #'
 #' @export
 validate_lab_result <- function(lab_data, result_value, result_unit, loinc_code, patient_id, lab_datetime){
