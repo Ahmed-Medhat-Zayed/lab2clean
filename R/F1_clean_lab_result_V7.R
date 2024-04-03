@@ -4,13 +4,14 @@ utils::globalVariables(c("first_number", "second_number"))
 #' Clean and Standardize Laboratory Result Values
 #'
 #' This function is designed to clean and standardize laboratory result values.
-#' It creates two new columns "clean_result" and "result_type" without altering
+#' It creates two new columns "clean_result" and "scale_type" without altering
 #' the original result values. The function is part of a comprehensive R package
 #' designed for cleaning laboratory datasets.
 #'
 #' @param lab_data A data frame containing laboratory data.
 #' @param raw_result The column in `lab_data` that contains raw result values to be cleaned.
 #' @param locale A string representing the locale for the laboratory data. Defaults to "NO".
+#' @param report A report is generated. Defaults to "TRUE".
 #' @param n_records In case you are loading a grouped list of distinct results, then you can assign the n_records to the column that contains the frequency of each distinct result. Defaults to NA
 #'
 #' @importFrom utils read.csv globalVariables
@@ -43,12 +44,9 @@ utils::globalVariables(c("first_number", "second_number"))
 #'
 #' @seealso
 #' Function 2 for result validation,
-#' Function 3 for lab unit format standardization,
-#' Function 4 for unit conversion,
-#' Function 5 for LOINC code mapping.
 #'
 #' @export
-clean_lab_result <- function(lab_data, raw_result, locale = "NO", n_records = NA){
+clean_lab_result <- function(lab_data, raw_result, locale = "NO", report = TRUE, n_records = NA){
   #add two new columns
   start.time <- Sys.time()
   lab_data$clean_result <- lab_data[[raw_result]]
@@ -113,8 +111,10 @@ clean_lab_result <- function(lab_data, raw_result, locale = "NO", n_records = NA
 #### Function Block 2: Handle extra variables adjacent to the result ####
   # This block identifies and separates any additional variables that might be stored in the result values such as interpretative flags and units.
   # It does this by detecting patterns in the result values using regular expressions and removing them.
-  cat(paste0(bold, "Step 1: Handling records with extra variables stored with the result value removing interpretative flags, or units", reset, "\n"))
-  cat("===============================================================================================\n")
+  if (report){
+    cat(paste0(bold, "Step 1: Handling records with extra variables stored with the result value removing interpretative flags, or units", reset, "\n"))
+    cat("===============================================================================================\n")
+  }
   # Preprocessing flags of different languages
   lab_data$clean_result <- gsub(lab_data$clean_result,
                                 pattern = paste0("(\\b|\\d)", "(", positive_pattern, ")", "(\\b|\\d)"),
@@ -182,19 +182,21 @@ clean_lab_result <- function(lab_data, raw_result, locale = "NO", n_records = NA
                                 replacement = "\\2"
   )
   # reporting numbers of records detected with flags
-  flag_records <- sum(grepl("flag", lab_data$cleaning_comments))
-  flag_records_n <- ifelse(!is.na(n_records),
-                            sum(lab_data[[n_records]][grepl("flag", lab_data$cleaning_comments)]),
-                            NA
-                           )
-  flag_records_percent <- ifelse(!is.na(n_records),
-                                  round((flag_records_n / total_n_records * 100), 3),
-                                  NA)
-  if (is.na(n_records)) {
-    cat(paste0(red, Warning," ",blue, flag_records, reset, "  records with interpretative flags (e.g. positive, negative, H, L) -> flags removed with cleaning comment added ", blue, "flag", reset, ").\n"))
-  }
-  if (!is.na(n_records)) {
-    cat(paste0(red, Warning," ",blue, flag_records, reset, " distinct results (",blue, flag_records_percent, "%", reset," of the total result records) with interpretative flags (e.g. positive, negative, H, L) -> flags removed with cleaning comment added ", blue, "flag", reset, ").\n"))
+  if (report){
+    flag_records <- sum(grepl("flag", lab_data$cleaning_comments))
+    flag_records_n <- ifelse(!is.na(n_records),
+                             sum(lab_data[[n_records]][grepl("flag", lab_data$cleaning_comments)]),
+                             NA
+    )
+    flag_records_percent <- ifelse(!is.na(n_records),
+                                   round((flag_records_n / total_n_records * 100), 3),
+                                   NA)
+    if (is.na(n_records)) {
+      cat(paste0(red, Warning," ",blue, flag_records, reset, "  records with interpretative flags (e.g. positive, negative, H, L) -> flags removed with cleaning comment added ", blue, "flag", reset, ").\n"))
+    }
+    if (!is.na(n_records)) {
+      cat(paste0(red, Warning," ",blue, flag_records, reset, " distinct results (",blue, flag_records_percent, "%", reset," of the total result records) with interpretative flags (e.g. positive, negative, H, L) -> flags removed with cleaning comment added ", blue, "flag", reset, ").\n"))
+    }
   }
   # Handling unit (Percents & Exponents)
   percent_flag <- grepl(
@@ -238,26 +240,30 @@ clean_lab_result <- function(lab_data, raw_result, locale = "NO", n_records = NA
                                 replacement = "\\1"
   )
   # reporting numbers of records detected with units
-  units_records <- sum(grepl("Percent|Exponents|Units", lab_data$cleaning_comments))
-  units_records_n <- ifelse(!is.na(n_records),
-                            sum(lab_data[[n_records]][grepl("Percent|Exponents|Units", lab_data$cleaning_comments)]),
-                            NA
-                            )
-  units_records_percent <- ifelse(!is.na(n_records),
-                            round((units_records_n / total_n_records * 100), 3),
-                            NA)
-  if (is.na(n_records)) {
-    cat(paste0(red, Warning," ",blue, units_records, reset, " records with unit (%, exponents, or other units) -> units removed with cleaning comment added (", blue, "Percent, Exponent, or Units", reset, ").\n"))
-  }
-  if (!is.na(n_records)) {
-    cat(paste0(red, Warning," ",blue, units_records, reset, " distinct results (",blue, units_records_percent, "%", reset," of the total result records) with unit (%, exponents, or other units) -> units removed with cleaning comment added ", blue, "Percent, Exponent, or Units", reset, ").\n"))
+  if (report){
+    units_records <- sum(grepl("Percent|Exponents|Units", lab_data$cleaning_comments))
+    units_records_n <- ifelse(!is.na(n_records),
+                              sum(lab_data[[n_records]][grepl("Percent|Exponents|Units", lab_data$cleaning_comments)]),
+                              NA
+    )
+    units_records_percent <- ifelse(!is.na(n_records),
+                                    round((units_records_n / total_n_records * 100), 3),
+                                    NA)
+    if (is.na(n_records)) {
+      cat(paste0(red, Warning," ",blue, units_records, reset, " records with unit (%, exponents, or other units) -> units removed with cleaning comment added (", blue, "Percent, Exponent, or Units", reset, ").\n"))
+    }
+    if (!is.na(n_records)) {
+      cat(paste0(red, Warning," ",blue, units_records, reset, " distinct results (",blue, units_records_percent, "%", reset," of the total result records) with unit (%, exponents, or other units) -> units removed with cleaning comment added ", blue, "Percent, Exponent, or Units", reset, ").\n"))
+    }
   }
 
 #### Function Block 3: Detect and assign scale types - Part 1 ####
   # This block identifies the scale type of each result value using regular expressions and assigns it to the scale_type column.
   # It specifically handles Ordinal scale types (Ord.2 and Ord.1) and Special Quantitative scale types (Qn.2, Qn.3 and Qn.4).
-  cat(paste0(bold, "Step 2: classify and standardize different scale types - part 1",reset,"\n"))
-  cat("===============================================================================================\n")
+  if (report){
+    cat(paste0(bold, "Step 2: classify and standardize different scale types - part 1",reset,"\n"))
+    cat("===============================================================================================\n")
+  }
   # Ord.2: This scale type describes the amount of the substance analyzed in 4 grades ("1+","2+","3+","4+") or ("+","++","+++","++++")
   positive_grades_pattern <- "[1-4]{1}[+]|[+]{1,4}"
   lab_data$clean_result <- gsub(lab_data$clean_result,
@@ -339,57 +345,59 @@ clean_lab_result <- function(lab_data, raw_result, locale = "NO", n_records = NA
   lab_data <- subset(lab_data, select = -c(first_number, second_number))
 
   # reporting numbers of records assigned to scale types Ord.2, Qn.2, Qn.3, Qn.4
-  ord2_records <- sum(grepl("Ord.2", lab_data$scale_type))
-  ord2_records_n <- ifelse(!is.na(n_records),
-                          sum(lab_data[[n_records]][grepl("Ord.2", lab_data$scale_type)]),
-                          NA)
-  ord2_records_percent <- ifelse(!is.na(n_records),
-                                round((ord2_records_n / total_n_records * 100), 3),
-                                NA)
-  if (is.na(n_records)) {
-    cat(paste0(green, success, " ", blue, ord2_records, reset," result records of scale type ", blue, "'Ord.2'", reset, ", which describes grades of positivity (e.g. 2+, 3+).\n"))
-  }
-  if (!is.na(n_records)) {
-    cat(paste0(green, success, " ", blue, ord2_records, reset," distinct results (", blue, ord2_records_percent, "%", reset," of the total result records) of scale type ", blue, "'Ord.2'", reset, ", which describes grades of positivity (e.g. 2+, 3+).\n"))
-  }
-  Qn2_records <- sum(grepl("Qn.2", lab_data$scale_type))
-  Qn2_records_n <- ifelse(!is.na(n_records),
-                           sum(lab_data[[n_records]][grepl("Qn.2", lab_data$scale_type)]),
-                           NA)
-  Qn2_records_percent <- ifelse(!is.na(n_records),
-                                 round((Qn2_records_n / total_n_records * 100), 3),
-                                 NA)
-  if (is.na(n_records)) {
-    cat(paste0(green, success, " ", blue, Qn2_records, reset, " result records of scale type ", blue, "'Qn.2'", reset, ", which describes inequality results (e.g. >120, <1).\n"))
-  }
-  if (!is.na(n_records)) {
-    cat(paste0(green, success, " ", blue, Qn2_records, reset, " distinct results (", blue, Qn2_records_percent, "%", reset," of the total result records) of scale type ", blue, "'Qn.2'", reset, ", which describes inequality results (e.g. >120, <1).\n"))
-  }
-  Qn3_records <- sum(grepl("Qn.3", lab_data$scale_type))
-  Qn3_records_n <- ifelse(!is.na(n_records),
-                          sum(lab_data[[n_records]][grepl("Qn.3", lab_data$scale_type)]),
-                          NA)
-  Qn3_records_percent <- ifelse(!is.na(n_records),
-                                round((Qn3_records_n / total_n_records * 100), 3),
-                                NA)
-  if (is.na(n_records)) {
-    cat(paste0(green, success, " ", blue, Qn3_records, reset, " result records of scale type ", blue, "'Qn.3'", reset, ", which describes numeric range results (e.g. 2-4).\n"))
-  }
-  if (!is.na(n_records)) {
-    cat(paste0(green, success, " ", blue, Qn3_records, reset, " distinct results (", blue, Qn3_records_percent, "%", reset," of the total result records) of scale type ", blue, "'Qn.3'", reset, ", which describes numeric range results (e.g. 2-4).\n"))
-  }
-  Qn4_records <- sum(grepl("Qn.4", lab_data$scale_type))
-  Qn4_records_n <- ifelse(!is.na(n_records),
-                          sum(lab_data[[n_records]][grepl("Qn.4", lab_data$scale_type)]),
-                          NA)
-  Qn4_records_percent <- ifelse(!is.na(n_records),
-                                round((Qn4_records_n / total_n_records * 100), 3),
-                                NA)
-  if (is.na(n_records)) {
-    cat(paste0(green, success, " ", blue, Qn4_records, reset, " result records of scale type ", blue, "'Qn.4'", reset, ", which describes titer results (e.g. 1/40).\n"))
-  }
-  if (!is.na(n_records)) {
-    cat(paste0(green, success, " ", blue, Qn4_records, reset, " distinct results (", blue, Qn4_records_percent, "%", reset," of the total result records) of scale type ", blue, "'Qn.4'", reset, ", which describes titer results (e.g. 1/40).\n"))
+  if (report){
+    ord2_records <- sum(grepl("Ord.2", lab_data$scale_type))
+    ord2_records_n <- ifelse(!is.na(n_records),
+                             sum(lab_data[[n_records]][grepl("Ord.2", lab_data$scale_type)]),
+                             NA)
+    ord2_records_percent <- ifelse(!is.na(n_records),
+                                   round((ord2_records_n / total_n_records * 100), 3),
+                                   NA)
+    if (is.na(n_records)) {
+      cat(paste0(green, success, " ", blue, ord2_records, reset," result records of scale type ", blue, "'Ord.2'", reset, ", which describes grades of positivity (e.g. 2+, 3+).\n"))
+    }
+    if (!is.na(n_records)) {
+      cat(paste0(green, success, " ", blue, ord2_records, reset," distinct results (", blue, ord2_records_percent, "%", reset," of the total result records) of scale type ", blue, "'Ord.2'", reset, ", which describes grades of positivity (e.g. 2+, 3+).\n"))
+    }
+    Qn2_records <- sum(grepl("Qn.2", lab_data$scale_type))
+    Qn2_records_n <- ifelse(!is.na(n_records),
+                            sum(lab_data[[n_records]][grepl("Qn.2", lab_data$scale_type)]),
+                            NA)
+    Qn2_records_percent <- ifelse(!is.na(n_records),
+                                  round((Qn2_records_n / total_n_records * 100), 3),
+                                  NA)
+    if (is.na(n_records)) {
+      cat(paste0(green, success, " ", blue, Qn2_records, reset, " result records of scale type ", blue, "'Qn.2'", reset, ", which describes inequality results (e.g. >120, <1).\n"))
+    }
+    if (!is.na(n_records)) {
+      cat(paste0(green, success, " ", blue, Qn2_records, reset, " distinct results (", blue, Qn2_records_percent, "%", reset," of the total result records) of scale type ", blue, "'Qn.2'", reset, ", which describes inequality results (e.g. >120, <1).\n"))
+    }
+    Qn3_records <- sum(grepl("Qn.3", lab_data$scale_type))
+    Qn3_records_n <- ifelse(!is.na(n_records),
+                            sum(lab_data[[n_records]][grepl("Qn.3", lab_data$scale_type)]),
+                            NA)
+    Qn3_records_percent <- ifelse(!is.na(n_records),
+                                  round((Qn3_records_n / total_n_records * 100), 3),
+                                  NA)
+    if (is.na(n_records)) {
+      cat(paste0(green, success, " ", blue, Qn3_records, reset, " result records of scale type ", blue, "'Qn.3'", reset, ", which describes numeric range results (e.g. 2-4).\n"))
+    }
+    if (!is.na(n_records)) {
+      cat(paste0(green, success, " ", blue, Qn3_records, reset, " distinct results (", blue, Qn3_records_percent, "%", reset," of the total result records) of scale type ", blue, "'Qn.3'", reset, ", which describes numeric range results (e.g. 2-4).\n"))
+    }
+    Qn4_records <- sum(grepl("Qn.4", lab_data$scale_type))
+    Qn4_records_n <- ifelse(!is.na(n_records),
+                            sum(lab_data[[n_records]][grepl("Qn.4", lab_data$scale_type)]),
+                            NA)
+    Qn4_records_percent <- ifelse(!is.na(n_records),
+                                  round((Qn4_records_n / total_n_records * 100), 3),
+                                  NA)
+    if (is.na(n_records)) {
+      cat(paste0(green, success, " ", blue, Qn4_records, reset, " result records of scale type ", blue, "'Qn.4'", reset, ", which describes titer results (e.g. 1/40).\n"))
+    }
+    if (!is.na(n_records)) {
+      cat(paste0(green, success, " ", blue, Qn4_records, reset, " distinct results (", blue, Qn4_records_percent, "%", reset," of the total result records) of scale type ", blue, "'Qn.4'", reset, ", which describes titer results (e.g. 1/40).\n"))
+    }
   }
 
 #### Function Block 5: Standardize Qn.1 numeric results according to locale ####
@@ -406,18 +414,20 @@ clean_lab_result <- function(lab_data, raw_result, locale = "NO", n_records = NA
       )
     ] <- "Qn.1"
   # reporting numbers of records assigned to scale type Qn.1
-  Qn1_records <- sum(grepl("Qn.1", lab_data$scale_type))
-  Qn1_records_n <- ifelse(!is.na(n_records),
-                          sum(lab_data[[n_records]][grepl("Qn.1", lab_data$scale_type)]),
-                          NA)
-  Qn1_records_percent <- ifelse(!is.na(n_records),
-                                round((Qn1_records_n / total_n_records * 100), 3),
-                                NA)
-  if (is.na(n_records)) {
-    cat(paste0(green, success, " ", blue, Qn1_records, reset, " result records of scale type ", blue, "'Qn.1'", reset, ", which describes numeric results (e.g. 56, 5.6, 5600).\n"))
-  }
-  if (!is.na(n_records)) {
-    cat(paste0(green, success, " ", blue, Qn1_records, reset, " distinct results (", blue, Qn1_records_percent, "%", reset," of the total result records) of scale type ", blue, "'Qn.1'", reset, ", which describes numeric results (e.g. 56, 5.6, 5600).\n"))
+  if (report){
+    Qn1_records <- sum(grepl("Qn.1", lab_data$scale_type))
+    Qn1_records_n <- ifelse(!is.na(n_records),
+                            sum(lab_data[[n_records]][grepl("Qn.1", lab_data$scale_type)]),
+                            NA)
+    Qn1_records_percent <- ifelse(!is.na(n_records),
+                                  round((Qn1_records_n / total_n_records * 100), 3),
+                                  NA)
+    if (is.na(n_records)) {
+      cat(paste0(green, success, " ", blue, Qn1_records, reset, " result records of scale type ", blue, "'Qn.1'", reset, ", which describes numeric results (e.g. 56, 5.6, 5600).\n"))
+    }
+    if (!is.na(n_records)) {
+      cat(paste0(green, success, " ", blue, Qn1_records, reset, " distinct results (", blue, Qn1_records_percent, "%", reset," of the total result records) of scale type ", blue, "'Qn.1'", reset, ", which describes numeric results (e.g. 56, 5.6, 5600).\n"))
+    }
   }
 
 #position of comma or period from right or left
@@ -484,18 +494,20 @@ clean_lab_result <- function(lab_data, raw_result, locale = "NO", n_records = NA
     is.na(lab_data$clean_result)
   ] <- NA
   # reporting numbers of Qn.1 records that requires locale check
-  locale_check_records <- sum(grepl("locale_check", lab_data$cleaning_comments))
-  locale_check_records_n <- ifelse(!is.na(n_records),
-                                   sum(lab_data[[n_records]][grepl("locale_check", lab_data$cleaning_comments)]),
-                                   NA)
-  locale_check_records_percent <- ifelse(!is.na(n_records),
-                                         round((locale_check_records_n / total_n_records * 100), 3),
-                                         NA)
-  if (is.na(n_records) & locale == "NO") {
-    cat(paste0(red, Warning," ",blue, locale_check_records, reset, " records with numeric result values that cannot be determined without predefined locale setting (US or DE) -> cleaning comment added ", blue, "locale_check", reset, ").\n"))
-  }
-  if (!is.na(n_records) & locale == "NO") {
-    cat(paste0(red, Warning," ",blue, locale_check_records, reset, " distinct results (",blue, locale_check_records_percent, "%", reset," of the total result records) with numeric result values that cannot be determined without predefined locale setting (US or DE) -> cleaning comment added ", blue, "locale_check", reset, ").\n"))
+  if (report){
+    locale_check_records <- sum(grepl("locale_check", lab_data$cleaning_comments))
+    locale_check_records_n <- ifelse(!is.na(n_records),
+                                     sum(lab_data[[n_records]][grepl("locale_check", lab_data$cleaning_comments)]),
+                                     NA)
+    locale_check_records_percent <- ifelse(!is.na(n_records),
+                                           round((locale_check_records_n / total_n_records * 100), 3),
+                                           NA)
+    if (is.na(n_records) & locale == "NO") {
+      cat(paste0(red, Warning," ",blue, locale_check_records, reset, " records with numeric result values that cannot be determined without predefined locale setting (US or DE) -> cleaning comment added ", blue, "locale_check", reset, ").\n"))
+    }
+    if (!is.na(n_records) & locale == "NO") {
+      cat(paste0(red, Warning," ",blue, locale_check_records, reset, " distinct results (",blue, locale_check_records_percent, "%", reset," of the total result records) with numeric result values that cannot be determined without predefined locale setting (US or DE) -> cleaning comment added ", blue, "locale_check", reset, ").\n"))
+    }
   }
   # Remove any leading zeros except followed by a decimal separator (e.g. 0.1)
   lab_data$clean_result <- ifelse(lab_data$scale_type %in% c("Qn.1", "Qn.2") & !is.na(lab_data$scale_type) &
@@ -613,20 +625,21 @@ clean_lab_result <- function(lab_data, raw_result, locale = "NO", n_records = NA
                                   lab_data$clean_result
                                   )
   # reporting numbers of records assigned to scale type Ord.1
-  Ord1_records <- sum(grepl("Ord.1", lab_data$scale_type))
-  Ord1_records_n <- ifelse(!is.na(n_records),
-                           sum(lab_data[[n_records]][grepl("Ord.1", lab_data$scale_type)]),
-                           NA)
-  Ord1_records_percent <- ifelse(!is.na(n_records),
-                                 round((Ord1_records_n / total_n_records * 100), 3),
-                                 NA)
-  if (is.na(n_records)) {
-    cat(paste0(green, success, " ", blue, Ord1_records, reset, " result records of scale type ", blue, "'Ord.1'", reset, ", which describes positive or negative results (Neg, Pos, or Normal).\n"))
+  if (report){
+    Ord1_records <- sum(grepl("Ord.1", lab_data$scale_type))
+    Ord1_records_n <- ifelse(!is.na(n_records),
+                             sum(lab_data[[n_records]][grepl("Ord.1", lab_data$scale_type)]),
+                             NA)
+    Ord1_records_percent <- ifelse(!is.na(n_records),
+                                   round((Ord1_records_n / total_n_records * 100), 3),
+                                   NA)
+    if (is.na(n_records)) {
+      cat(paste0(green, success, " ", blue, Ord1_records, reset, " result records of scale type ", blue, "'Ord.1'", reset, ", which describes positive or negative results (Neg, Pos, or Normal).\n"))
+    }
+    if (!is.na(n_records)) {
+      cat(paste0(green, success, " ", blue, Ord1_records, reset, " distinct results (", blue, Ord1_records_percent, "%", reset," of the total result records) of scale type ", blue, "'Ord.1'", reset, ", which describes positive or negative results (Neg, Pos, or Normal).\n"))
+    }
   }
-  if (!is.na(n_records)) {
-    cat(paste0(green, success, " ", blue, Ord1_records, reset, " distinct results (", blue, Ord1_records_percent, "%", reset," of the total result records) of scale type ", blue, "'Ord.1'", reset, ", which describes positive or negative results (Neg, Pos, or Normal).\n"))
-  }
-
   # Detection & Standardization of Blood Group Types (Nom.1)
   lab_data$scale_type[
     grepl(
@@ -650,23 +663,27 @@ clean_lab_result <- function(lab_data, raw_result, locale = "NO", n_records = NA
                                   lab_data$clean_result
                                   )
   # reporting numbers of records assigned to scale type Ord.1
-  Nom1_records <- sum(grepl("Nom.1", lab_data$scale_type))
-  Nom1_records_n <- ifelse(!is.na(n_records),
-                           sum(lab_data[[n_records]][grepl("Nom.1", lab_data$scale_type)]),
-                           NA)
-  Nom1_records_percent <- ifelse(!is.na(n_records),
-                                 round((Nom1_records_n / total_n_records * 100), 3),
-                                 NA)
-  if (is.na(n_records)) {
-    cat(paste0(green, success, " ", blue, Nom1_records, reset, " result records of scale type ", blue, "'Nom.1'", reset, ", which describes blood groups (e.g. A+, AB).\n"))
-  }
-  if (!is.na(n_records)) {
-    cat(paste0(green, success, " ", blue, Nom1_records, reset, " distinct results (", blue, Nom1_records_percent, "%", reset," of the total result records) of scale type ", blue, "'Nom.1'", reset, ", which describes blood groups (e.g. A+, AB).\n"))
+  if (report){
+    Nom1_records <- sum(grepl("Nom.1", lab_data$scale_type))
+    Nom1_records_n <- ifelse(!is.na(n_records),
+                             sum(lab_data[[n_records]][grepl("Nom.1", lab_data$scale_type)]),
+                             NA)
+    Nom1_records_percent <- ifelse(!is.na(n_records),
+                                   round((Nom1_records_n / total_n_records * 100), 3),
+                                   NA)
+    if (is.na(n_records)) {
+      cat(paste0(green, success, " ", blue, Nom1_records, reset, " result records of scale type ", blue, "'Nom.1'", reset, ", which describes blood groups (e.g. A+, AB).\n"))
+    }
+    if (!is.na(n_records)) {
+      cat(paste0(green, success, " ", blue, Nom1_records, reset, " distinct results (", blue, Nom1_records_percent, "%", reset," of the total result records) of scale type ", blue, "'Nom.1'", reset, ", which describes blood groups (e.g. A+, AB).\n"))
+    }
   }
 
 #### Handling other not standardized result values ####
-  cat(paste0(bold, "Last Step: Classifying non-standard text records", reset, "\n"))
-  cat("===============================================================================================\n")
+  if (report){
+    cat(paste0(bold, "Last Step: Classifying non-standard text records", reset, "\n"))
+    cat("===============================================================================================\n")
+  }
   lab_data$cleaning_comments <- ifelse(lab_data$clean_result == "Neg & Pos" & !is.na(lab_data$clean_result) &
                                          is.na(lab_data$scale_type),
                                        "multiple_results",
@@ -688,63 +705,67 @@ clean_lab_result <- function(lab_data, raw_result, locale = "NO", n_records = NA
                                        )
 
   # reporting number of records with non standardized result values
-  pos_neg_records <- sum(grepl("multiple_results", lab_data$cleaning_comments))
-  pos_neg_records_n <- ifelse(!is.na(n_records),
-                              sum(lab_data[[n_records]][grepl("multiple_results", lab_data$cleaning_comments)]),
-                              NA)
-  pos_neg_records_percent <- ifelse(!is.na(n_records),
-                                    round((pos_neg_records_n / total_n_records * 100), 3),
-                                    NA)
-  if (is.na(n_records)) {
-    cat(paste0(red, Warning," ",blue, pos_neg_records, reset, " text result records with multiple result values (e.g. postive X & negative Y) -> cleaning comment added (", blue, "multiple_results", reset, ").\n"))
-  }
-  if (!is.na(n_records)) {
-    cat(paste0(red, Warning," ",blue, pos_neg_records, reset, " distinct results (",blue, pos_neg_records_percent, "%", reset," of the total result records) with multiple result values (e.g. postive X & negative Y) -> cleaning comment added (", blue, "multiple_results", reset, ").\n"))
-  }
-  TNP_records <- sum(grepl("test_not_performed", lab_data$cleaning_comments))
-  TNP_records_n <- ifelse(!is.na(n_records),
-                          sum(lab_data[[n_records]][grepl("test_not_performed", lab_data$cleaning_comments)]),
-                          NA)
-  TNP_records_percent <- ifelse(!is.na(n_records),
-                                round((TNP_records_n / total_n_records * 100), 3),
+  if (report){
+    pos_neg_records <- sum(grepl("multiple_results", lab_data$cleaning_comments))
+    pos_neg_records_n <- ifelse(!is.na(n_records),
+                                sum(lab_data[[n_records]][grepl("multiple_results", lab_data$cleaning_comments)]),
                                 NA)
-  if (is.na(n_records)) {
-    cat(paste0(red, Warning," ",blue, TNP_records, reset, " text result records with words about sample or specimen (e.g. sample not found) -> cleaning comment added (", blue, "test_not_performed", reset, ").\n"))
-  }
-  if (!is.na(n_records)) {
-    cat(paste0(red, Warning," ",blue, TNP_records, reset, " distinct results (",blue, TNP_records_percent, "%", reset," of the total result records) with words about sample or specimen (e.g. sample not found) -> cleaning comment added (", blue, "test_not_performed", reset, ").\n"))
-  }
-  No_result_records <- sum(grepl("No_result", lab_data$cleaning_comments))
-  No_result_records_n <- ifelse(!is.na(n_records),
-                                sum(lab_data[[n_records]][grepl("No_result", lab_data$cleaning_comments)]),
-                                NA)
-  No_result_records_percent <- ifelse(!is.na(n_records),
-                                      round((No_result_records_n / total_n_records * 100), 3),
+    pos_neg_records_percent <- ifelse(!is.na(n_records),
+                                      round((pos_neg_records_n / total_n_records * 100), 3),
                                       NA)
-  if (is.na(n_records)) {
-    cat(paste0(red, Warning," ",blue, No_result_records, reset, " result records with meaningless inputs (e.g. = , .) -> cleaning comment added (", blue, "No_result", reset, ").\n"))
-  }
-  if (!is.na(n_records)) {
-    cat(paste0(red, Warning," ",blue, No_result_records, reset, " distinct results (",blue, No_result_records_percent, "%", reset," of the total result records) with meaningless inputs (e.g. = , .) -> cleaning comment added (", blue, "No_result", reset, ").\n"))
-  }
-  not_standard_records <- sum(grepl("not_standardized", lab_data$cleaning_comments))
-  not_standard_records_n <- ifelse(!is.na(n_records),
-                                   sum(lab_data[[n_records]][grepl("not_standardized", lab_data$cleaning_comments)]),
-                                   NA)
-  not_standard_records_percent <- ifelse(!is.na(n_records),
-                                         round((not_standard_records_n / total_n_records * 100), 3),
-                                         NA)
-  if (is.na(n_records)) {
-    cat(paste0(red, Warning," ",blue, not_standard_records, reset, " text result records that could not be standardized or classified -> cleaning comment added (", blue, "not_standardized", reset, ").\n"))
-  }
-  if (!is.na(n_records)) {
-    cat(paste0(red, Warning," ",blue, not_standard_records, reset, " distinct results (",blue, not_standard_records_percent, "%", reset," of the total result records) that could not be standardized or classified -> cleaning comment added (", blue, "not_standardized", reset, ").\n"))
+    if (is.na(n_records)) {
+      cat(paste0(red, Warning," ",blue, pos_neg_records, reset, " text result records with multiple result values (e.g. postive X & negative Y) -> cleaning comment added (", blue, "multiple_results", reset, ").\n"))
+    }
+    if (!is.na(n_records)) {
+      cat(paste0(red, Warning," ",blue, pos_neg_records, reset, " distinct results (",blue, pos_neg_records_percent, "%", reset," of the total result records) with multiple result values (e.g. postive X & negative Y) -> cleaning comment added (", blue, "multiple_results", reset, ").\n"))
+    }
+    TNP_records <- sum(grepl("test_not_performed", lab_data$cleaning_comments))
+    TNP_records_n <- ifelse(!is.na(n_records),
+                            sum(lab_data[[n_records]][grepl("test_not_performed", lab_data$cleaning_comments)]),
+                            NA)
+    TNP_records_percent <- ifelse(!is.na(n_records),
+                                  round((TNP_records_n / total_n_records * 100), 3),
+                                  NA)
+    if (is.na(n_records)) {
+      cat(paste0(red, Warning," ",blue, TNP_records, reset, " text result records with words about sample or specimen (e.g. sample not found) -> cleaning comment added (", blue, "test_not_performed", reset, ").\n"))
+    }
+    if (!is.na(n_records)) {
+      cat(paste0(red, Warning," ",blue, TNP_records, reset, " distinct results (",blue, TNP_records_percent, "%", reset," of the total result records) with words about sample or specimen (e.g. sample not found) -> cleaning comment added (", blue, "test_not_performed", reset, ").\n"))
+    }
+    No_result_records <- sum(grepl("No_result", lab_data$cleaning_comments))
+    No_result_records_n <- ifelse(!is.na(n_records),
+                                  sum(lab_data[[n_records]][grepl("No_result", lab_data$cleaning_comments)]),
+                                  NA)
+    No_result_records_percent <- ifelse(!is.na(n_records),
+                                        round((No_result_records_n / total_n_records * 100), 3),
+                                        NA)
+    if (is.na(n_records)) {
+      cat(paste0(red, Warning," ",blue, No_result_records, reset, " result records with meaningless inputs (e.g. = , .) -> cleaning comment added (", blue, "No_result", reset, ").\n"))
+    }
+    if (!is.na(n_records)) {
+      cat(paste0(red, Warning," ",blue, No_result_records, reset, " distinct results (",blue, No_result_records_percent, "%", reset," of the total result records) with meaningless inputs (e.g. = , .) -> cleaning comment added (", blue, "No_result", reset, ").\n"))
+    }
+    not_standard_records <- sum(grepl("not_standardized", lab_data$cleaning_comments))
+    not_standard_records_n <- ifelse(!is.na(n_records),
+                                     sum(lab_data[[n_records]][grepl("not_standardized", lab_data$cleaning_comments)]),
+                                     NA)
+    not_standard_records_percent <- ifelse(!is.na(n_records),
+                                           round((not_standard_records_n / total_n_records * 100), 3),
+                                           NA)
+    if (is.na(n_records)) {
+      cat(paste0(red, Warning," ",blue, not_standard_records, reset, " text result records that could not be standardized or classified -> cleaning comment added (", blue, "not_standardized", reset, ").\n"))
+    }
+    if (!is.na(n_records)) {
+      cat(paste0(red, Warning," ",blue, not_standard_records, reset, " distinct results (",blue, not_standard_records_percent, "%", reset," of the total result records) that could not be standardized or classified -> cleaning comment added (", blue, "not_standardized", reset, ").\n"))
+    }
   }
 
   lab_data$clean_result[
     is.na(lab_data$scale_type)
   ] <- NA
-  cat("===============================================================================================\n")
+  if (report){
+    cat("===============================================================================================\n")
+  }
   standard_records <- sum(!is.na(lab_data$scale_type))
   standard_records_n <- ifelse(!is.na(n_records),
                                    sum(lab_data[[n_records]][!is.na(lab_data$scale_type)]),
