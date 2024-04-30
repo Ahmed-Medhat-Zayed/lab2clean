@@ -1,11 +1,5 @@
 # lab2clean
 R Package for Automation and Standardization of Cleaning Retrospective Clinical Lab Data
-
-<style>
-  body {
-    text-align:justify;
-word-spacing:-2px;}
-</style>
   
   <br>
 ## 1. Introduction
@@ -18,16 +12,11 @@ There are two functions inside the `lab2clean` R package, namely `clean_lab_resu
 
 ## 2. Setup
 ### Install and load the `lab2clean` package
-You can install and load the `lab2clean` package directly from R. After you install the `lab2clean` package, you can load it to use its functions using the library function. Note that you have to load the *R* package that you need to use each time you start a new *R* session, however installation only needs to occur once.
-
-```{r name just for reference,}
-1+1
-```
-
+You can install the latest version of `lab2clean` directly from GitHub using the `remotes` package. If you do not have the `remotes` package installed, you can install it using the following command:
 
 ```{r install github, eval=FALSE}
-# Github maybe as well
-install.packages("lab2clean")
+install.packages("remotes")
+remotes::install_github("Ahmed-Medhat-Zayed/lab2clean")
 ```
 
 ```{r read library,}
