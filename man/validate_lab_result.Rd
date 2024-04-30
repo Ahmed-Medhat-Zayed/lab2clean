@@ -65,9 +65,6 @@ Concerning performance, the function's speed might be influenced by the size of 
 }
 \seealso{
 Function 1 for result value cleaning,
-Function 3 for lab unit format standardization,
-Function 4 for unit conversion,
-Function 5 for LOINC code mapping.
 }
 \author{
 Ahmed Zayed \href{mailto:ahmed.zayed@kuleuvne.be}{ahmed.zayed@kuleuvne.be}, Arne Janssens \href{mailto:arne.janssens@kuleuven.be}{arne.janssens@kuleuven.be}

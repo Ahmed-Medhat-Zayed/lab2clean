@@ -4,7 +4,13 @@
 \alias{clean_lab_result}
 \title{Clean and Standardize Laboratory Result Values}
 \usage{
-clean_lab_result(lab_data, raw_result, locale = "NO", n_records = NA)
+clean_lab_result(
+  lab_data,
+  raw_result,
+  locale = "NO",
+  report = TRUE,
+  n_records = NA
+)
 }
 \arguments{
 \item{lab_data}{A data frame containing laboratory data.}
@@ -12,6 +18,8 @@ clean_lab_result(lab_data, raw_result, locale = "NO", n_records = NA)
 \item{raw_result}{The column in \code{lab_data} that contains raw result values to be cleaned.}
 
 \item{locale}{A string representing the locale for the laboratory data. Defaults to "NO".}
+
+\item{report}{A report is generated. Defaults to "TRUE".}
 
 \item{n_records}{In case you are loading a grouped list of distinct results, then you can assign the n_records to the column that contains the frequency of each distinct result. Defaults to NA}
 }
@@ -25,7 +33,7 @@ A modified \code{lab_data} data frame with additional columns:
 }
 \description{
 This function is designed to clean and standardize laboratory result values.
-It creates two new columns "clean_result" and "result_type" without altering
+It creates two new columns "clean_result" and "scale_type" without altering
 the original result values. The function is part of a comprehensive R package
 designed for cleaning laboratory datasets.
 }
@@ -52,9 +60,6 @@ or pre-processing may be needed.
 }
 \seealso{
 Function 2 for result validation,
-Function 3 for lab unit format standardization,
-Function 4 for unit conversion,
-Function 5 for LOINC code mapping.
 }
 \author{
 Ahmed Zayed \href{mailto:ahmed.zayed@kuleuven.be}{ahmed.zayed@kuleuven.be}
