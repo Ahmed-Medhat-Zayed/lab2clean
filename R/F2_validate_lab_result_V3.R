@@ -1,6 +1,7 @@
 # Specify global variables
 utils::globalVariables(c("group", "validation_result", "time_diff", "time_interval", "value_diff", "total_records_1000",
-                         "lower_percentile", "upper_percentile", "flag", "lab_date", ".", "i.validation_result", "logic_check_eligible"))
+                         "lower_percentile", "upper_percentile", "flag", "lab_date", ".", "i.validation_result", "logic_check_eligible",
+                         "reportable_interval", "logic_rules"))
 
 #' Validate Quantitative Laboratory Result Values
 #'
@@ -16,7 +17,7 @@ utils::globalVariables(c("group", "validation_result", "time_diff", "time_interv
 #'
 #' @import data.table
 #' @importFrom stats ave quantile
-#' @importFrom utils read.csv globalVariables
+#' @importFrom utils data globalVariables
 #'
 #' @return A modified `lab_data` data frame with additional columns:
 #'   * `flag`: specifies the flag detected in the result records that violated one or more of the validation checks
@@ -36,7 +37,8 @@ utils::globalVariables(c("group", "validation_result", "time_diff", "time_interv
 #'
 #' @note
 #' This function is a component of a broader laboratory data cleaning pipeline and should be evaluated accordingly.
-#' The package's framework includes functions for cleaning result values and validating quantitative results.
+#' The package's framework includes functions for cleaning result values, validating quantitative results,
+#' standardizing unit formats, performing unit conversion, and assisting in LOINC code mapping.
 #'
 #' Concerning performance, the function's speed might be influenced by the size of `lab_data`. Consider:
 #'   * Limiting the number of records processed.
@@ -83,13 +85,13 @@ validate_lab_result <- function(lab_data, result_value, result_unit, loinc_code,
   #### Check1: Reportable Limits ####
   cat(paste0(bold, "Check 1: Reportable Limits Check", reset, "\n"))
   cat("===============================================================================================\n")
-  reportable_limits <- read.csv(system.file("extdata", "reportable_interval.csv", package="lab2clean"))
+  data("reportable_interval", package = "lab2clean", envir = environment())
 
-  # Join lab_data with reportable_limits based on loinc_code and result_unit
+  # Join lab_data with reportable_interval based on loinc_code and result_unit
   # Temporarily rename the columns
   names(lab_data)[names(lab_data) %in% c(loinc_code, result_unit)] <- c("interval_loinc_code", "UCUM_unit")
   # Perform the merge
-  lab_data <- merge(lab_data, reportable_limits, by = c("interval_loinc_code", "UCUM_unit"), all.x = TRUE)
+  lab_data <- merge(lab_data, reportable_interval, by = c("interval_loinc_code", "UCUM_unit"), all.x = TRUE)
   # Revert the column names back to their original values
   names(lab_data)[names(lab_data) %in% c("interval_loinc_code", "UCUM_unit")] <- c(loinc_code, result_unit)
 
@@ -102,14 +104,14 @@ validate_lab_result <- function(lab_data, result_value, result_unit, loinc_code,
   high_unreportable_records <- sum(grepl("high_unreportable", lab_data$flag))
   cat(paste0(red, Warning, " ", blue, high_unreportable_records, reset, " extremely high records were flagged (high_unreportable).\n"))
 
-  # Drop the columns that were merged from reportable_limits
+  # Drop the columns that were merged from reportable_interval
   lab_data$low_reportable_limit <- NULL
   lab_data$high_reportable_limit <- NULL
 
   #### Check2: Logic Rules ####
   cat(paste0(bold, "Check 2: Logic Consistency Checks", reset, "\n"))
   cat("===============================================================================================\n")
-  logic_rules <- read.csv(system.file("extdata", "logic_rules.csv", package="lab2clean"))
+  data("logic_rules", package = "lab2clean", envir = environment())
   logic_check_loinc <- logic_rules$rule_part[logic_rules$rule_part_type == "loinc_code"]
 
   # Filter out entries flagged as duplicates or with missing flags

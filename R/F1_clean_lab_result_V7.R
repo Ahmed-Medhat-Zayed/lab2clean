@@ -1,5 +1,5 @@
 # Specify global variables
-utils::globalVariables(c("first_number", "second_number"))
+utils::globalVariables(c("first_number", "second_number", "common_words"))
 
 #' Clean and Standardize Laboratory Result Values
 #'
@@ -14,7 +14,7 @@ utils::globalVariables(c("first_number", "second_number"))
 #' @param report A report is generated. Defaults to "TRUE".
 #' @param n_records In case you are loading a grouped list of distinct results, then you can assign the n_records to the column that contains the frequency of each distinct result. Defaults to NA
 #'
-#' @importFrom utils read.csv globalVariables
+#' @importFrom utils data globalVariables
 #'
 #' @return A modified `lab_data` data frame with additional columns:
 #'   * `clean_result`: Cleaned and standardized result values.
@@ -58,7 +58,9 @@ clean_lab_result <- function(lab_data, raw_result, locale = "NO", report = TRUE,
                             )
 
 #### Define regex patterns to be detected ####
-  common_words <- read.csv(system.file("extdata", "common_words_languages_ASCII-TRANSLIT.csv", package="lab2clean"))
+  data("common_words", package = "lab2clean", envir = environment())
+
+  #common_words <- read.csv(system.file("extdata", "common_words_languages_ASCII-TRANSLIT.csv", package="lab2clean"))
   positive_pattern <- paste0(common_words$Positive, collapse = "|")
   negative_pattern <- paste0(common_words$Negative, collapse = "|")
   notdetected_pattern <- paste0(common_words$Not_detected, collapse = "|")
